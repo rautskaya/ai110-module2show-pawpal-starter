@@ -68,7 +68,7 @@ Sample test output:
 tests/test_pawpal.py ..                                                                                                          [100%]
 
 ========================================================== 
-2 passed in 0.01s ===========================================================
+20 passed in 0.03s ===========================================================
 
 ## 📐 Smarter Scheduling
 
@@ -89,6 +89,21 @@ lives in `pawpal_system.py`.
 - **Filtering** — `filter_tasks()` defaults both arguments to `None`, meaning "don't filter on this," so one method handles every combination (all tasks, one pet, by status, or both).
 - **Conflict detection** — `Task.overlaps()` compares two time windows (`start < other.end and other.start < end`); `find_conflicts()` checks every task pair and returns `Conflict` objects, never crashing on a clash.
 - **Recurring tasks** — `frequency` (`"daily"`, `"weekly"`, `"once"`) drives `occurs_on()` and `next_occurrence()`, which advances the due date by one day or one week using `timedelta`.
+
+## 🧪 Testing PawPal+
+
+The core scheduling logic is covered by an automated [pytest](https://docs.pytest.org/) suite in `tests/test_pawpal.py`. Run it from the project root:
+
+```bash
+python -m pytest
+```
+
+The tests verify the behaviors a pet owner actually relies on:
+
+- **Sorting** — `sort_by_time()` returns tasks in chronological order regardless of insertion order, and `sort_tasks()` orders by priority with due time as the tiebreaker.
+- **Filtering** — `filter_tasks()` narrows correctly by pet, by completion status (including the `completed=False` case), both combined, and returns everything when given no arguments.
+- **Conflict detection** — `find_conflicts()` flags overlapping tasks (same pet and different pets) and tasks scheduled at identical times, while leaving non-overlapping tasks alone; `conflict_warnings()` returns strings without raising.
+- **Recurring tasks** — completing a daily task auto-schedules a new instance for the next day, weekly tasks advance one week, and "once" tasks create no follow-up.
 
 ## 📸 Demo Walkthrough
 

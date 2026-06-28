@@ -75,6 +75,52 @@ def test_filter_by_pet_and_status_combined(scheduler):
     assert _descriptions(result) == {"Morning walk"}
 
 
+def test_sort_by_time_returns_chronological_order():
+    # Tasks added out of order should come back earliest-first.
+    owner = Owner("Sam")
+    pet = Pet("Rex", "dog")
+    owner.add_pet(pet)
+    pet.add_task(Task("Evening walk", datetime(2026, 6, 28, 18, 0), 30, "low"))
+    pet.add_task(Task("Morning walk", datetime(2026, 6, 28, 8, 0), 30, "high"))
+    pet.add_task(Task("Lunch feed", datetime(2026, 6, 28, 12, 0), 10, "medium"))
+
+    ordered = Scheduler(owner, 120).sort_by_time()
+    assert [task.description for _, task in ordered] == [
+        "Morning walk",
+        "Lunch feed",
+        "Evening walk",
+    ]
+
+
+def test_sort_tasks_orders_by_priority_then_due_time():
+    # Priority wins; due time breaks ties within the same priority.
+    owner = Owner("Sam")
+    pet = Pet("Rex", "dog")
+    owner.add_pet(pet)
+    pet.add_task(Task("Late high", datetime(2026, 6, 28, 10, 0), 30, "high"))
+    pet.add_task(Task("Early high", datetime(2026, 6, 28, 8, 0), 30, "high"))
+    pet.add_task(Task("Early low", datetime(2026, 6, 28, 7, 0), 30, "low"))
+
+    ordered = Scheduler(owner, 120).sort_tasks()
+    assert [task.description for _, task in ordered] == [
+        "Early high",
+        "Late high",
+        "Early low",
+    ]
+
+
+def test_detects_conflict_for_identical_times():
+    # Two tasks scheduled at the exact same start time must be flagged.
+    owner = Owner("Sam")
+    pet = Pet("Rex", "dog")
+    owner.add_pet(pet)
+    pet.add_task(Task("Walk", datetime(2026, 6, 28, 8, 0), 30, "high"))
+    pet.add_task(Task("Meds", datetime(2026, 6, 28, 8, 0), 10, "high"))
+
+    conflicts = Scheduler(owner, 90).find_conflicts()
+    assert len(conflicts) == 1
+
+
 def test_daily_task_next_occurrence_advances_one_day():
     task = Task("Walk", datetime(2026, 6, 28, 8, 0), 30, "high", frequency="daily")
     nxt = task.next_occurrence()

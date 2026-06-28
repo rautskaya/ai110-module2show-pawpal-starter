@@ -86,12 +86,22 @@ That's fine here because a pet owner cares more about getting the important task
 **a. What you tested**
 
 - What behaviors did you test?
+
+Sorting (chronological order, and priority with due time as a tiebreaker), filtering (by pet, by status, both combined, and no-args), conflict detection (same-pet, different-pet, and identical start times), and recurring tasks (completing a daily task creates a new one for the next day, weekly advances a week, and "once" creates nothing).
+
 - Why were these tests important?
+
+These are the behaviors a pet owner actually depends on — the plan has to be in the right order, show the right tasks, warn about clashes, and keep recurring care on schedule. A bug in any of them would quietly break the daily plan, so locking them down with tests guards against future changes breaking them.
 
 **b. Confidence**
 
 - How confident are you that your scheduler works correctly?
+
+Fairly confident — about 4 out of 5. All 20 tests pass, and the parts pet owners rely on most (sorting, filtering, conflict detection, and recurring tasks) are directly verified. I'm holding back the last point because `generate_plan()`, the app's headline feature, isn't tested yet.
+
 - What edge cases would you test next if you had more time?
+
+`generate_plan()` respecting the time budget (and skipping a too-big task while still fitting a smaller later one), the `occurs_on()` / `tasks_for_date()` calendar logic, the weekly year rollover (Dec → Jan), and the back-to-back boundary where one task ends exactly as the next begins.
 
 ---
 
