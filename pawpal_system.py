@@ -1,24 +1,36 @@
 """PawPal+ system classes.
 
-Class stubs based on the UML in diagrams/uml_draft.mmd.
-Data-holding objects (Task, Pet) use dataclasses to stay clean.
-No logic yet — methods are stubs to be filled in later.
+Implements the four core objects from diagrams/uml_draft.mmd:
+Task, Pet, Owner, and Scheduler. Data-holding objects use dataclasses
+to stay clean; Scheduler holds the planning logic.
 """
 
 from dataclasses import dataclass, field
+from datetime import datetime
+
+
+# Lower number = higher priority, used for sorting.
+PRIORITY_RANK = {"high": 0, "medium": 1, "low": 2}
 
 
 @dataclass
 class Task:
     """A single pet care task (walk, feeding, meds, etc.)."""
 
-    name: str
+    description: str
+    due: datetime  # when the task is due
     duration: int  # minutes
     priority: str  # "high", "medium", or "low"
+    frequency: str = "daily"  # e.g. "daily", "weekly", "once"
+    completed: bool = False
 
-    def summary(self) -> str:
-        """Return a short, readable description of the task."""
-        raise NotImplementedError
+    def mark_complete(self) -> None:
+        """Mark this task as done."""
+        self.completed = True
+
+    def priority_rank(self) -> int:
+        """Return a sortable number for this task's priority (high first)."""
+        return PRIORITY_RANK.get(self.priority.lower(), len(PRIORITY_RANK))
 
 
 @dataclass
@@ -31,15 +43,20 @@ class Pet:
 
     def add_task(self, task: Task) -> None:
         """Add a task to this pet."""
-        raise NotImplementedError
+        self.tasks.append(task)
 
-    def edit_task(self, task: Task) -> None:
-        """Update an existing task on this pet."""
-        raise NotImplementedError
+    def edit_task(self, description: str, **changes) -> bool:
+        """Update fields on the task matching the description; return True if found."""
+        for task in self.tasks:
+            if task.description == description:
+                for field_name, value in changes.items():
+                    setattr(task, field_name, value)
+                return True
+        return False
 
     def get_tasks(self) -> list[Task]:
         """Return all tasks for this pet."""
-        raise NotImplementedError
+        return self.tasks
 
 
 @dataclass
@@ -51,41 +68,50 @@ class Owner:
 
     def add_pet(self, pet: Pet) -> None:
         """Add a pet to this owner."""
-        raise NotImplementedError
+        self.pets.append(pet)
 
     def get_pets(self) -> list[Pet]:
         """Return all pets for this owner."""
-        raise NotImplementedError
+        return self.pets
 
-
-@dataclass
-class Plan:
-    """The finished daily schedule produced by the Scheduler."""
-
-    scheduled_tasks: list[Task] = field(default_factory=list)
-    skipped_tasks: list[Task] = field(default_factory=list)
-    total_time: int = 0
-
-    def display(self) -> str:
-        """Return the plan as readable text."""
-        raise NotImplementedError
+    def get_all_tasks(self) -> list[tuple[Pet, Task]]:
+        """Return every task across all pets, paired with the pet it belongs to."""
+        all_tasks: list[tuple[Pet, Task]] = []
+        for pet in self.pets:
+            for task in pet.get_tasks():
+                all_tasks.append((pet, task))
+        return all_tasks
 
 
 class Scheduler:
-    """Turns a list of tasks into a daily plan based on constraints."""
+    """Organizes tasks across all of an owner's pets into a daily plan."""
 
-    def __init__(self, tasks: list[Task], available_time: int) -> None:
-        self.tasks = tasks
+    def __init__(self, owner: Owner, available_time: int) -> None:
+        """Create a scheduler for an owner with a daily time budget (minutes)."""
+        self.owner = owner
         self.available_time = available_time  # minutes available in the day
 
-    def sort_tasks(self) -> list[Task]:
-        """Return tasks ordered by priority (and duration as a tiebreaker)."""
-        raise NotImplementedError
+    def collect_tasks(self) -> list[tuple[Pet, Task]]:
+        """Return unfinished tasks across all pets, paired with their pet."""
+        return [
+            (pet, task)
+            for pet, task in self.owner.get_all_tasks()
+            if not task.completed
+        ]
 
-    def generate_plan(self) -> Plan:
-        """Fit tasks into the available time and return a Plan."""
-        raise NotImplementedError
+    def sort_tasks(self) -> list[tuple[Pet, Task]]:
+        """Order tasks by priority, then by soonest due time as a tiebreaker."""
+        return sorted(
+            self.collect_tasks(),
+            key=lambda pair: (pair[1].priority_rank(), pair[1].due),
+        )
 
-    def explain_plan(self) -> str:
-        """Explain why the scheduler chose this plan."""
-        raise NotImplementedError
+    def generate_plan(self) -> list[tuple[Pet, Task]]:
+        """Return the sorted tasks that fit within the available time, in order."""
+        plan: list[tuple[Pet, Task]] = []
+        time_left = self.available_time
+        for pet, task in self.sort_tasks():
+            if task.duration <= time_left:
+                plan.append((pet, task))
+                time_left -= task.duration
+        return plan
