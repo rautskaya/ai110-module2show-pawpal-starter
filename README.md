@@ -46,13 +46,60 @@ pip install -r requirements.txt
 
 Paste a sample of your app's CLI or Streamlit output here so a reader can see what a generated plan looks like:
 
+Tasks as added (insertion order):
+  09:00  Feeding (Biscuit)
+  08:00  Morning walk (Biscuit)
+  11:00  Weekly bath (Biscuit)
+  08:10  Medication (Biscuit)
+  18:00  Grooming (Mittens)
+  07:00  Litter box (Mittens)
+  08:15  Vet visit (Mittens)
+
 Today's Schedule for Alex (90 min available)
 ---------------------------------------------
   08:00  Morning walk (30 min) [high] - Biscuit
-  09:00  Feeding (10 min) [high] - Biscuit
+  08:10  Medication (10 min) [high] - Biscuit
+  08:15  Vet visit (30 min) [high] - Mittens
   07:00  Litter box (15 min) [medium] - Mittens
-  18:00  Grooming (20 min) [low] - Mittens
 
+Full day, in time order:
+---------------------------------------------
+  07:00-07:15  Litter box (Mittens)
+  08:00-08:30  Morning walk (Biscuit)
+  08:10-08:20  Medication (Biscuit)
+  08:15-08:45  Vet visit (Mittens)
+  11:00-11:45  Weekly bath (Biscuit)
+  18:00-18:20  Grooming (Mittens)
+
+Biscuit's tasks only (filter by pet):
+  - Feeding (done)
+  - Morning walk (pending)
+  - Weekly bath (pending)
+  - Medication (pending)
+
+Pending tasks only (filter by status):
+  - Morning walk (Biscuit)
+  - Weekly bath (Biscuit)
+  - Medication (Biscuit)
+  - Grooming (Mittens)
+  - Litter box (Mittens)
+  - Vet visit (Mittens)
+
+Completed tasks only (filter by status):
+  - Feeding (Biscuit)
+
+Tasks recurring onto Sunday 2026-07-05:
+  - Litter box [daily]
+  - Morning walk [daily]
+  - Medication [daily]
+  - Weekly bath [weekly]
+  - Grooming [daily]
+
+Scheduling conflicts:
+  ⛔  Morning walk (Biscuit, 08:00-08:30) overlaps Medication (Biscuit, 08:10-08:20) — Biscuit can't do two things at once
+  ⚠️  Morning walk (Biscuit, 08:00-08:30) overlaps Vet visit (Mittens, 08:15-08:45) — Biscuit and Mittens need you at the same time
+  ⚠️  Medication (Biscuit, 08:10-08:20) overlaps Vet visit (Mittens, 08:15-08:45) — Biscuit and Mittens need you at the same time
+  
 ## 🧪 Testing PawPal+
 
 ```bash

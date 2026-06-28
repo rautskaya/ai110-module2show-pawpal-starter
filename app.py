@@ -111,12 +111,21 @@ if pets:
     filtered = Scheduler(owner, 0).filter_tasks(pet_name=pet_name, completed=completed)
 
     if filtered:
-        for pet, t in filtered:
-            done = "✅" if t.completed else "⬜"
-            st.write(
-                f"- {done} {t.due:%H:%M} {t.description} "
-                f"({t.duration} min) [{t.priority}] — {pet.name}"
-            )
+        # Show the matching tasks as a clean timeline, earliest first.
+        filtered.sort(key=lambda pair: pair[1].due)
+        st.table(
+            [
+                {
+                    "Status": "✅ Done" if t.completed else "⬜ Pending",
+                    "Time": f"{t.due:%H:%M}",
+                    "Task": t.description,
+                    "Duration": f"{t.duration} min",
+                    "Priority": t.priority,
+                    "Pet": pet.name,
+                }
+                for pet, t in filtered
+            ]
+        )
     else:
         st.caption("No tasks match this filter.")
 else:
@@ -135,11 +144,31 @@ if st.button("Generate schedule"):
     plan = scheduler.generate_plan()
 
     if plan:
-        st.write(f"**Today's Schedule for {owner.name}:**")
-        for pet, task in plan:
-            st.write(
-                f"- {task.due:%H:%M} — {task.description} "
-                f"({task.duration} min) [{task.priority}] for {pet.name}"
-            )
+        used = sum(task.duration for _, task in plan)
+        st.success(
+            f"Planned {len(plan)} task(s) for {owner.name} — "
+            f"{used} of {int(available_time)} min used."
+        )
+        st.table(
+            [
+                {
+                    "Time": f"{task.due:%H:%M}–{task.end:%H:%M}",
+                    "Task": task.description,
+                    "Duration": f"{task.duration} min",
+                    "Priority": task.priority,
+                    "Pet": pet.name,
+                }
+                for pet, task in plan
+            ]
+        )
     else:
         st.info("No tasks fit in the available time. Add tasks or increase the time.")
+
+    # Surface scheduling clashes so the owner knows where to step in.
+    warnings = scheduler.conflict_warnings()
+    if warnings:
+        st.markdown("**Schedule conflicts**")
+        for warning in warnings:
+            st.warning(warning)
+    elif plan:
+        st.success("✅ No conflicts — every task has a clear time slot.")

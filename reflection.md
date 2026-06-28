@@ -72,12 +72,22 @@ That's fine here because a pet owner cares more about getting the important task
 **a. How you used AI**
 
 - How did you use AI tools during this project (for example: design brainstorming, debugging, refactoring)?
+
+I used AI to find gaps in my test coverage, write the missing tests (sorting and conflict cases), wire the Scheduler methods into the Streamlit UI with tables and conflict warnings, and update the UML diagram to match my final code.
+
 - What kinds of prompts or questions were most helpful?
+
+Specific, behavior-focused questions worked best — like "what happy-path and edge cases am I missing?" and "does my UML still match the code?" Asking it to check my work against the actual files gave much better answers than open-ended requests.
 
 **b. Judgment and verification**
 
 - Describe one moment where you did not accept an AI suggestion as-is.
+
+When AI suggested presenting conflicts, I had it use `st.warning` rather than `st.error` — a scheduling clash is something to flag for the owner's judgment, not a crash, which also matched how the backend already returns warning strings instead of raising.
+
 - How did you evaluate or verify what the AI suggested?
+
+I ran the test suite (all 20 pass) and syntax-checked `app.py`, and I compared each suggested test and UML entry against the real methods in `pawpal_system.py` instead of trusting the description.
 
 ---
 
@@ -111,10 +121,16 @@ Fairly confident — about 4 out of 5. All 20 tests pass, and the parts pet owne
 
 - What part of this project are you most satisfied with?
 
+Keeping the logic in `pawpal_system.py` separate from the UI in `app.py`. Because the Scheduler methods were clean and tested, wiring them into Streamlit with tables and conflict warnings was quick and didn't require changing any backend code.
+
 **b. What you would improve**
 
 - If you had another iteration, what would you improve or redesign?
 
+I'd add tests for `generate_plan()` and the calendar logic (`occurs_on` / `tasks_for_date`), and surface recurring tasks and the "complete task" action in the UI, which currently only live in the logic layer.
+
 **c. Key takeaway**
 
 - What is one important thing you learned about designing systems or working with AI on this project?
+
+Designing the data model first and keeping logic out of the UI made everything afterward easier — testing, displaying, and changing things. And AI is most useful when you point it at the actual code and verify its output, not when you trust it blindly.

@@ -1,0 +1,62 @@
+classDiagram
+    class Owner {
+        +str name
+        +list~Pet~ pets
+        +add_pet(pet) None
+        +get_pets() list~Pet~
+        +get_all_tasks() list~Pet,Task~
+    }
+
+    class Pet {
+        +str name
+        +str species
+        +list~Task~ tasks
+        +add_task(task) None
+        +edit_task(description, changes) bool
+        +get_tasks() list~Task~
+    }
+
+    class Task {
+        +str description
+        +datetime due
+        +int duration
+        +str priority
+        +str frequency
+        +bool completed
+        +mark_complete() None
+        +priority_rank() int
+        +end() datetime
+        +overlaps(other) bool
+        +occurs_on(target) bool
+        +next_occurrence() Task
+    }
+
+    class Scheduler {
+        +Owner owner
+        +int available_time
+        +collect_tasks() list~Pet,Task~
+        +complete_task(pet, task) Task
+        +sort_tasks() list~Pet,Task~
+        +sort_by_time() list~Pet,Task~
+        +filter_tasks(pet_name, completed) list~Pet,Task~
+        +tasks_for_date(target) list~Pet,Task~
+        +find_conflicts() list~Conflict~
+        +conflict_warnings() list~str~
+        +has_conflicts() bool
+        +generate_plan() list~Pet,Task~
+    }
+
+    class Conflict {
+        +Pet pet_a
+        +Task task_a
+        +Pet pet_b
+        +Task task_b
+        +same_pet() bool
+        +describe() str
+    }
+
+    Owner "1" --> "*" Pet : owns
+    Pet "1" --> "*" Task : has
+    Scheduler --> Owner : schedules for
+    Scheduler ..> Conflict : produces
+    Conflict --> Task : references
