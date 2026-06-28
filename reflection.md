@@ -47,10 +47,23 @@ I made these changes after AI reviewed the skeleton and it showed missing pieces
 - What constraints does your scheduler consider (for example: time, priority, preferences)?
 - How did you decide which constraints mattered most?
 
+My scheduler looks at four things:
+
+- **Priority** — each task is high, medium, or low. High-priority tasks come first.
+- **Time available** — the owner says how many minutes they have that day, and the plan only adds tasks that fit in that time.
+- **Due time** — when two tasks have the same priority, the one due earlier goes first.
+- **Done or not** — finished tasks are skipped so the plan only shows what's left.
+
+I decided priority mattered most because some tasks (like feeding or meds) can't be skipped, while others (like grooming) can wait. So the scheduler sorts by priority first, then uses the due time to break ties, and finally drops any task that doesn't fit in the time the owner has.
+
 **b. Tradeoffs**
 
 - Describe one tradeoff your scheduler makes.
 - Why is that tradeoff reasonable for this scenario?
+
+My scheduler is "greedy": it adds tasks in priority order and stops when the time runs out. This doesn't always fit the most tasks — skipping one long task could have made room for two short ones, but it won't rearrange to find that.
+
+That's fine here because a pet owner cares more about getting the important tasks done (like feeding or meds) than about fitting the largest number of small ones. A simple, predictable plan is easier to trust.
 
 ---
 
